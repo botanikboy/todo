@@ -1,9 +1,6 @@
-from http import HTTPStatus
-
-from rest_framework.viewsets import GenericViewSet, ViewSet
-from rest_framework import generics
+from rest_framework.viewsets import GenericViewSet
+from rest_framework import generics, permissions
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
 
 from todo_list.models import Task
 from .serializers import TaskSerialiser
@@ -16,8 +13,8 @@ class CreateTask(GenericViewSet, generics.CreateAPIView):
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            code = UuidGenerator()
-            uuid = code.generate()
+            generator = UuidGenerator()
+            uuid = generator.generate()
             serializer.save(uuid=uuid)
 
 
@@ -26,20 +23,24 @@ class ListTask(GenericViewSet, generics.ListAPIView):
     serializer_class = TaskSerialiser
 
 
-class RetriveDeleteTask(ViewSet):
-    queryset = Task.objects.all()
+class RetriveTask(generics.RetrieveAPIView):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = TaskSerialiser
 
-    def retrieve(self, request, pk=None):
-        uuid = request.query_params.get('uuid')
-        task = get_object_or_404(self.queryset, uuid=uuid)
-        serializer = TaskSerialiser(task)
-        return Response(serializer.data)
+    def get_object(self):
+        uuid = self.request.query_params.get('uuid')
+        if uuid is not None:
+            task = get_object_or_404(Task, uuid=uuid)
+            return task
 
-    def destroy(self, request):
-        uuid = request.query_params.get('uuid')
-        task = get_object_or_404(self.queryset, uuid=uuid)
-        try:
-            self.perform_destroy(task)
-        except Exception:
-            pass
-        return Response(status=HTTPStatus.NO_CONTENT)
+
+class DeleteTask(generics.DestroyAPIView):
+    serializer_class = TaskSerialiser
+
+    def get_object(self):
+        uuid = self.request.query_params.get('uuid')
+        if uuid is not None:
+            task = get_object_or_404(Task.objects.all(), uuid=uuid)
+            return task
+        else:
+            return super().get_object()

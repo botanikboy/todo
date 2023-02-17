@@ -11,16 +11,16 @@ TODO
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 
-from .views import CreateTask, ListTask, RetriveDeleteTask
+from .views import CreateTask, ListTask, DeleteTask, RetriveTask
 
 API_VERSION = ''
 
 router = SimpleRouter()
 router.register('record/create', CreateTask)
 router.register('records/all', ListTask)
-router.register('record', RetriveDeleteTask, basename='task get delete')
-
 
 urlpatterns = [
     path(f'{API_VERSION}', include(router.urls)),
+    path(f'{API_VERSION}record/delete', DeleteTask.as_view()),
+    path(f'{API_VERSION}record/get', RetriveTask.as_view()),
 ]
