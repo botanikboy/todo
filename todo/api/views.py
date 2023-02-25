@@ -1,6 +1,9 @@
+import datetime as dt
+
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import generics, permissions
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 from todo_list.models import Task
 from .serializers import TaskSerialiser
@@ -21,6 +24,18 @@ class CreateTask(GenericViewSet, generics.CreateAPIView):
 class ListTask(GenericViewSet, generics.ListAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskSerialiser
+    filter_backends = [DjangoFilterBackend, ]
+
+    def get_queryset(self):
+        start_str = self.request.query_params.get('start')
+        end_str = self.request.query_params.get('end')
+        if all([start_str is not None,
+               end_str is not None]):
+            start_date = dt.datetime.strptime(start_str, '%d.%m.%y')
+            end_date = dt.datetime.strptime(end_str, '%d.%m.%y') + dt.timedelta(hours=23, minutes=59, seconds=59)
+            return self.queryset.filter(created__range=(start_date, end_date))
+        else:
+            return self.queryset
 
 
 class RetriveTask(generics.RetrieveAPIView):

@@ -18,6 +18,7 @@ API_VERSION = ''
 router = SimpleRouter()
 router.register('record/create', CreateTask)
 router.register('records/all', ListTask)
+router.register('records/list', ListTask)
 
 urlpatterns = [
     path(f'{API_VERSION}', include(router.urls)),
