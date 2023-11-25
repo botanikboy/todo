@@ -32,7 +32,8 @@ class ListTask(GenericViewSet, generics.ListAPIView):
         if all([start_str is not None,
                end_str is not None]):
             start_date = dt.datetime.strptime(start_str, '%d.%m.%y')
-            end_date = dt.datetime.strptime(end_str, '%d.%m.%y') + dt.timedelta(hours=23, minutes=59, seconds=59)
+            end_date = (dt.datetime.strptime(end_str, '%d.%m.%y')
+                        + dt.timedelta(hours=23, minutes=59, seconds=59))
             return self.queryset.filter(created__range=(start_date, end_date))
         else:
             return self.queryset
